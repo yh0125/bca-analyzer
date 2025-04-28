@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配对数据分析工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>配对数据分析工具</h1>
+        <p>BCa Bootstrap CI 和 Wilcoxon 检验 — 为医学研究提供精确可靠的统计分析</p>
+    </div>
+
+    <div class="container">
+        <!-- 错误信息区域 -->
+        <div id="error-message" class="error" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-text"></span>
+        </div>
+        
+        {% if error %}
+        <div class="error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- 加载指示器 -->
+        <div id="loading" style="display: none;">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p>正在处理数据，请耐心等待...</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> 分析设置</h2>
+            <p>分别上传包含两次测量数据的Excel文件。程序将使用指定的'Patient ID'列来匹配两个文件中的患者，并对两个文件中都存在的测量指标进行配对分析。</p>
+            
+            <form id="analysis-form" action="/analyze" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="patient_id_col">Patient ID列名:</label>
+                    <div class="input-with-badge">
+                        <input type="text" id="patient_id_col" name="patient_id_col" value="PatientID">
+                        <div class="tooltip-trigger">?
+                            <span class="tooltip">输入用于匹配患者的列名，两个文件中必须都包含此列</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="n_reps_bootstrap">自助法重采次数 (Reps):</label>
+                    <div class="input-with-badge">
+                        <input type="number" id="n_reps_bootstrap" name="n_reps_bootstrap" value="2999" min="100" max="20000" step="100">
+                        <div class="tooltip-trigger">?
+                            <span class="tooltip">推荐至少1000-2000次以获得稳定的置信区间，数值越大计算越久</span>
+                        </div>
+                    </div>
+                    <small>推荐值: 1000-5000, 值越大结果越稳定但计算时间越长</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confidence_level">置信区间水平 (%):</label>
+                    <div class="input-with-badge">
+                        <input type="number" id="confidence_level" name="confidence_level" value="95.0" min="80.0" max="99.9" step="0.5">
+                        <span class="confidence-badge">95%</span>
+                        <div class="tooltip-trigger">?
+                            <span class="tooltip">置信区间的置信水平，通常使用95%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-input-group">
+                    <label for="file_t1">第一次测量数据文件 (.xlsx):</label>
+                    <div class="file-input-container">
+                        <input type="file" id="file_t1" name="file_t1" accept=".xlsx" required style="display:none;">
+                        <div class="custom-file-input" id="file_t1_trigger">
+                            <i class="fas fa-file-excel"></i>
+                            <strong>选择或拖放Excel文件</strong>
+                            <span>支持.xlsx格式</span>
+                        </div>
+                        <div id="file_name_1" class="file-name">未选择文件</div>
+                    </div>
+                </div>
+                
+                <div class="file-input-group">
+                    <label for="file_t2">第二次测量数据文件 (.xlsx):</label>
+                    <div class="file-input-container">
+                        <input type="file" id="file_t2" name="file_t2" accept=".xlsx" required style="display:none;">
+                        <div class="custom-file-input" id="file_t2_trigger">
+                            <i class="fas fa-file-excel"></i>
+                            <strong>选择或拖放Excel文件</strong>
+                            <span>支持.xlsx格式</span>
+                        </div>
+                        <div id="file_name_2" class="file-name">未选择文件</div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> 开始分析
+                </button>
+            </form>
+        </div>
+        
+        <div class="info">
+            <h3><i class="fas fa-info-circle"></i> Excel文件格式要求</h3>
+            <ul>
+                <li><strong>两个文件</strong>都必须包含指定的Patient ID列。</li>
+                <li>每个患者在每个文件中最多占一行。</li>
+                <li>两个文件应包含<strong>相同名称</strong>的测量指标列。</li>
+                <li>支持的文件格式为<strong>.xlsx</strong> (Excel 2007及以上版本)。</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>BCa Bootstrap分析工具 © 2023 | 为医学科研提供统计支持</p>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

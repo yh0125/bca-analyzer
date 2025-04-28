@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配对数据分析结果</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>分析结果汇总</h1>
+        <p>BCa Bootstrap CI 和 Wilcoxon 检验结果</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-table"></i> 统计分析结果</h2>
+            
+            <div class="results-container">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                        <tr>
+                            {% for col in columns %}
+                            <td>
+                                {% if col == "Parameter" %}
+                                    <strong>{{ row[col] }}</strong>
+                                {% elif "P Value" in col and row[col] is number %}
+                                    {% if row[col] < 0.001 %}
+                                        <span style="color: #e74c3c; font-weight: bold;">&lt; 0.001</span>
+                                    {% elif row[col] < 0.05 %}
+                                        <span style="color: #e74c3c;">{{ "%.4f"|format(row[col]) }}</span>
+                                    {% else %}
+                                        {{ "%.4f"|format(row[col]) }}
+                                    {% endif %}
+                                {% elif "CI Method" in col %}
+                                    {% if row[col] == "BCa" %}
+                                        <span style="color: #4a6fa5; font-weight: bold;">{{ row[col] }}</span>
+                                    {% elif row[col] == "Percentile" %}
+                                        <span style="color: #9370DB;">{{ row[col] }}</span>
+                                    {% else %}
+                                        {{ row[col] }}
+                                    {% endif %}
+                                {% elif row[col] is number %}
+                                    {{ "%.4f"|format(row[col]) }}
+                                {% else %}
+                                    {{ row[col] }}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="download-section">
+                <form action="/download_csv" method="post">
+                    <input type="hidden" name="csv_data" value="{{ csv_data }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download"></i> 下载CSV结果
+                    </button>
+                </form>
+                
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回分析首页
+                </a>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3><i class="fas fa-lightbulb"></i> 结果解读帮助</h3>
+            <ul>
+                <li><strong>Mean (Diff)</strong>: 两次测量的平均差值</li>
+                <li><strong>Bias</strong>: Bootstrap估计的偏差</li>
+                <li><strong>CI</strong>: 基于Bootstrap方法的置信区间</li>
+                <li><strong>P Value</strong>: Wilcoxon配对检验的P值，<0.05表示有统计学差异</li>
+                <li><strong>CI Method</strong>: 计算置信区间使用的方法，BCa优于Percentile方法</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>BCa Bootstrap分析工具 © 2023 | 为医学科研提供统计支持</p>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
